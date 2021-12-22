@@ -65,7 +65,7 @@ const liftA3: <A, B, C, D>(
 
 //u <* v = liftA2 const u v
 const apLeft: <A, B>(a: Parse<A>) => (b: Parse<B>) => Parse<A> = a => b =>
-  (a = liftA2(constant)(a)(b));
+  liftA2(constant)(a)(b);
 
 const sequenceA: (f: Array<Parse<string>>) => Parse<string> = ([x, ...xs]) => {
   const concat = (x: string) => (y: string) => {
