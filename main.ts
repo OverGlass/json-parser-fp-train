@@ -1,14 +1,11 @@
 import * as O from "https://raw.githubusercontent.com/nullpub/fun/main/option.ts";
 
-// import * as A from "https://raw.githubusercontent.com/nullpub/fun/main/array.ts";
-
 import {
   flow,
   pipe,
   strictEquals,
   constant,
   identity,
-  // compose,
 } from "https://raw.githubusercontent.com/nullpub/fun/main/fns.ts";
 
 type JsonValue =
@@ -22,14 +19,18 @@ type JsonValue =
 type Parse<A> = (a: string) => O.Option<[string, A]>;
 type char = string;
 
-/* Functor */
+/* 
+ -- Functor --
+*/
 const map: <A, B>(f: (a: A) => B) => (p: Parse<A>) => Parse<B> = f => p =>
   flow(
     p,
     O.map(([xs, a]) => [xs, f(a)])
   );
 
-/* Applicative */
+/* 
+  -- Applicative --
+*/
 const pure: <A>(a: A) => Parse<A> = a => i => O.some([i, a]);
 
 const ap: <A, B>(p: Parse<(a: A) => B>) => (p2: Parse<A>) => Parse<B> =
@@ -75,7 +76,9 @@ const sequenceA: (f: Array<Parse<string>>) => Parse<string> = ([x, ...xs]) => {
   return result;
 };
 
-/* Alternative */
+/* 
+  -- Alternative --
+*/
 const empty: Parse<never> = () => O.none;
 
 //    alt :: Parse a -> Parse a -> Parse a
@@ -93,7 +96,9 @@ function many<A>(p: Parse<A>): Parse<Array<A>> {
   return alt(some(p))(pure([]));
 }
 
-/* utils */
+/*
+  -- utils --
+*/
 
 function concat<A>(x: A, y: A[]): A[] {
   return [...y, x];
@@ -113,7 +118,9 @@ const span: <A>(
   );
 };
 
-// Parsers
+/*
+  -- parsers --
+*/
 
 const parseChar: (c: char) => Parse<char> = c => input => {
   const [x, ...xs] = Array.from(input);
@@ -199,7 +206,7 @@ const jsonObject: Parse<JsonValue> = pipe(
 );
 
 function jsonValue(input: string): O.Option<[string, JsonValue]> {
-  const res = pipe(
+  return pipe(
     jsonNull,
     alt(jsonBool),
     alt(jsonNumber),
@@ -207,15 +214,17 @@ function jsonValue(input: string): O.Option<[string, JsonValue]> {
     alt(jsonArray),
     alt(jsonObject)
   )(input);
-  return res;
 }
 
-console.log(
-  pipe(
-    jsonValue('{"a": 12, "c": [1, 2, 3], "b": "hello"}'),
-    O.fold(
-      () => "error",
-      ([rest, parsed]) => parsed
-    )
-  )
+/*
+  -- execution --
+*/
+
+pipe(
+  jsonValue('{"a": 12, "c": [1, 2, 3], "b": "hello"}'),
+  O.fold(
+    () => "error",
+    ([rest, parsed]) => parsed
+  ),
+  x => console.log(x)
 );
